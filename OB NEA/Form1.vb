@@ -371,7 +371,7 @@ Public Class Form1
         ' Loop until the stack is empty
         While genstack.Count > 0
 
-            Dim currentCell = genstack.Pop()
+            Dim currentCell = genstack.Peek()
             Dim cell = maze(currentCell.X, currentCell.Y)
 
             ' Mark the current cell as visited
@@ -398,7 +398,7 @@ Public Class Form1
 
                 Dim neighbours = cell.removeWall(direction)
                 genstack.Push(neighbours)
-                genstack.Pop()
+
             End If
         End While
     End Sub
