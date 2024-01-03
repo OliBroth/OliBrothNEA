@@ -363,48 +363,45 @@ Public Class Form1
     End Class
 
     Private Sub DFS(ByVal x As Integer, ByVal y As Integer)
-        Dim direction As Integer
-
+        ' Initialize the stack with the starting point
         genstack.Push(New Point(x, y))
 
+        Dim direction As Integer
 
+        ' Loop until the stack is empty
         While genstack.Count > 0
-            Dim currentCell = genstack.Peek()
+
+            Dim currentCell = genstack.Pop()
             Dim cell = maze(currentCell.X, currentCell.Y)
-            'mark current cell as visited
+
+            ' Mark the current cell as visited
             cell.visited = True
 
+            ' Get the unvisited neighbors of the current cell
             Dim unvisitedNeighbours = cell.GetUnvisitedNeighbours(False)
+
+            ' If all neighbors are visited, pop another cell from the stack and continue the loop
             If unvisitedNeighbours.All(Function(p) p.Equals(Point.Empty)) = True Then
                 genstack.Pop()
                 Continue While
             End If
-            ' Make a new list that only contains the non empty values from neighbour
-            Dim validNeigbours = unvisitedNeighbours.Where(Function(point) point <> Point.Empty).ToList()
-            Randomize()
-            direction = unvisitedNeighbours.IndexOf(validNeigbours(random.Next(0, validNeigbours.Count())))
-            If unvisitedNeighbours.Count > 0 Then
-                Dim neighbourCell As Point = RandomCellFromSet(unvisitedNeighbours, random)
-                cell.removeWall(direction)
-                genstack.Push(neighbourCell)
 
-            Else
-                genstack.Pop() ' Backtrack when there are no unvisited neighbours
+            ' Filter out the empty values from the list of neighbors
+            Dim validNeighbours = unvisitedNeighbours.Where(Function(point) point <> Point.Empty).ToList()
+
+            ' Randomly choose a valid direction from the list of non-empty neighbors
+            Randomize()
+            direction = unvisitedNeighbours.IndexOf(validNeighbours(random.Next(0, validNeighbours.Count())))
+
+
+            If unvisitedNeighbours.Count > 0 Then
+
+                Dim neighbours = cell.removeWall(direction)
+                genstack.Push(neighbours)
+                genstack.Pop()
             End If
         End While
     End Sub
-    Function RandomCellFromSet(ByVal cells As List(Of Point), ByVal random As Random)
-        ' Check if the list is not empty
-        If cells.Count > 0 Then
-            ' Generate a random index within the range of the list
-            Dim randomIndex As Integer = random.Next(0, cells.Count)
-            ' Return the randomly selected cell
-            Return cells(randomIndex)
-        Else
-            ' Return Nothing if the list is empty
-            Return Nothing
-        End If
-    End Function 'no issues yet
 
     Private Sub HuntAndKill(width, height)
         ' create an empty maze
