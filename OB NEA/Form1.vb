@@ -334,7 +334,7 @@ Public Class Form1
                 If nx >= 0 AndAlso nx < Form1.maze.GetLength(0) AndAlso ny >= 0 AndAlso ny < Form1.maze.GetLength(1) AndAlso Form1.maze(nx, ny).visited = False Then
                     neighbours.Add(New Point(nx, ny))
                 Else
-                    neighbours.Add(Point.Empty)
+                    neighbours.Add(Point.Empty) 'failure case
                 End If
             Next
 
@@ -343,7 +343,7 @@ Public Class Form1
                 neighbours = Shuffle(neighbours)
             End If
             Return neighbours
-        End Function 'needs more references...
+        End Function
 
         Function Shuffle(Of T)(ByVal list As List(Of T)) As List(Of T)
             Dim rand As New Random()
