@@ -288,26 +288,33 @@ Public Class Form1
                 End If
             Next
         End Sub
-        Public Function removeWall(ByVal d As Integer) As Point
+      Public Function removeWall(ByVal d As Integer)
             Dim directions As Point() = {New Point(0, -1), New Point(1, 0), New Point(0, 1), New Point(-1, 0)}
+
             If mwallbool = True Then
                 Return Point.Empty
-                Exit Function
             End If
 
-
+            ' Calculate the new coordinates based on the chosen direction (d)
             Dim nx As Integer = x + directions(d).X
             Dim ny As Integer = y + directions(d).Y
 
+            ' Check if the new coordinates are within the bounds of the maze
             If nx >= 0 AndAlso nx < Form1.maze.GetLength(0) AndAlso ny >= 0 AndAlso ny < Form1.maze.GetLength(1) AndAlso Form1.maze(nx, ny).mwallbool = True Then
-                Return Point.Empty
+                Return Point.Empty 'failure case
             End If
 
+            ' Disable the current direction's wall and the opposite direction's wall in the neighboring cell
             walls(d) = False
             Form1.maze(nx, ny).walls((d + 2) Mod 4) = False
+
+            ' Add the current cell's coordinates to the list of connected cells
             concell.Add(New Point(nx, ny))
+
+            ' Add the current cell's coordinates to the list of connected cells in the neighboring cell
             Form1.maze(nx, ny).concell.Add(New Point(x, y))
 
+            ' Return the last added coordinates in the list of connected cells
             Return concell(concell.Count() - 1)
         End Function
         'to get unvisited neighbours
