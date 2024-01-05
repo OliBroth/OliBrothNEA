@@ -288,7 +288,7 @@ Public Class Form1
                 End If
             Next
         End Sub
-      Public Function removeWall(ByVal d As Integer)
+       Public Function removeWall(ByVal d As Integer)
             Dim directions As Point() = {New Point(0, -1), New Point(1, 0), New Point(0, 1), New Point(-1, 0)}
 
             If mwallbool = True Then
