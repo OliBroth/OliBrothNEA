@@ -9,7 +9,7 @@ Imports System.Windows.Forms.VisualStyles
 
 Public Class Form1
     'drawing form with its controllers
-    Private Const psize As Integer = 3
+    Private Const psize As Integer = 2
     Private m As Integer = 3
     Private mazeimage As Bitmap
     Private MazeGraphics As Graphics
@@ -69,13 +69,13 @@ Public Class Form1
             ' This assigns the items in the dictionary
             dictionary = New SortedDictionary(Of priority, Queue(Of value))()
         End Sub
-        Public Sub Enqueue(priority As priority, value As value)
+        Public Sub Enqueue(priority As priority, val As value)
             ' If we have a new priority we create a new queue
             If Not dictionary.ContainsKey(priority) Then
                 dictionary(priority) = New Queue(Of value)()
             End If
             ' Add value to queue
-            dictionary(priority).Enqueue(value)
+            dictionary(priority).Enqueue(val)
         End Sub
         Public Function Dequeue() As value
             ' This helps when debugging
@@ -84,13 +84,13 @@ Public Class Form1
             End If
 
             Dim pair1 As KeyValuePair(Of priority, Queue(Of value)) = dictionary.First()
-            Dim value As value = pair1.Value.Dequeue()
+            Dim val As value = pair1.Value.Dequeue()
 
             If pair1.Value.Count = 0 Then
                 dictionary.Remove(pair1.Key)
             End If
 
-            Return value
+            Return val
         End Function
 
         ' Checks if the whole queue is empty
@@ -99,14 +99,14 @@ Public Class Form1
         End Function
         Public Function Count() As Integer
             Dim totalCount As Integer = 0
-            For Each q In dictionary.Values
-                totalCount += q.Count
+            For Each p In dictionary.Values
+                totalCount += p.Count
             Next
             Return totalCount
         End Function
-        Public Function Contains(v As value) As Boolean
-            For Each q In dictionary.Values
-                If q.Contains(v) Then
+        Public Function Contains(val As value) As Boolean
+            For Each p In dictionary.Values
+                If p.Contains(val) Then
                     Return True
                 End If
             Next
@@ -265,12 +265,12 @@ Public Class Form1
         Public concell As New List(Of Point)
         Public Sub drawWalls()
             For wall As Integer = 0 To 3
-                If walls(wall) = True Then
-                    Dim penColor As Color = If(Form1.mazeColour = Color.Empty, Color.Black, Form1.mazeColour)
-                    Dim wallPen As New Pen(penColor, psize)
-
-                    Form1.MazeGraphics.DrawLine(wallPen, wallpos(wall, 0), wallpos(wall, 1))
-                    Form1.MazeGraphics.DrawLine(wallPen, wallpos(wall, 0), wallpos(wall, 1))
+                If walls(wall) = True And Form1.mazeColour = Color.Empty Then
+                    Form1.MazeGraphics.DrawLine(New Pen(Color.Black, psize), wallpos(wall, 0), wallpos(wall, 1))
+                    Form1.MazeGraphics.DrawLine(New Pen(Color.Black, psize), wallpos(wall, 0), wallpos(wall, 1))
+                ElseIf walls(wall) = True Then ' If user hasnt selected colour
+                    Form1.MazeGraphics.DrawLine(New Pen(Form1.mazeColour, psize), wallpos(wall, 0), wallpos(wall, 1))
+                    Form1.MazeGraphics.DrawLine(New Pen(Form1.mazeColour, psize), wallpos(wall, 0), wallpos(wall, 1))
                 End If
             Next
         End Sub
@@ -310,7 +310,8 @@ Public Class Form1
             Dim directions As Point() = {New Point(0, -1), New Point(1, 0), New Point(0, 1), New Point(-1, 0)}
 
             If mwallbool = True Then
-                Return neighbours
+                Return {Point.Empty, Point.Empty, Point.Empty, Point.Empty}.ToList
+                Exit Function
             End If
 
             For Each direction In directions
@@ -371,13 +372,11 @@ Public Class Form1
                 genstack.Pop()
                 Continue While
             End If
-
-            ' Filter out the empty values from the list of neighbors
-            Dim validNeighbours = unvisitedNeighbours.Where(Function(point) point <> Point.Empty).ToList()
+            Dim valNeighbours = unvisitedNeighbours.Where(Function(p) p <> Point.Empty).ToList()
 
             ' Randomly choose a valid direction from the list of non-empty neighbors
             Randomize()
-            direction = unvisitedNeighbours.IndexOf(validNeighbours(random.Next(0, validNeighbours.Count())))
+            direction = unvisitedNeighbours.IndexOf(valNeighbours(random.Next(0, valNeighbours.Count())))
 
 
             Dim neighbours = cell.removeWall(direction)
@@ -406,7 +405,7 @@ Public Class Form1
             ' Mark the current cell as visited
             cell.visited = True
 
-            ' Get a random unvisited neighbor
+            'Get a random unvisited neighbor
             Dim neighbourcell = cell.GetUnvisitedNeighbours(True) 'randomisation as rand is set to true
 
             Dim validNeighbours = neighbourcell.Where(Function(point) point <> Point.Empty).ToList()
@@ -415,7 +414,7 @@ Public Class Form1
 
             Dim neighbour = cell.removeWall(direction)
 
-            ' Update the current cell
+            'Update the current cell
             currentcell = neighbour
 
         End While
@@ -566,7 +565,6 @@ Public Class Form1
         gweight.Clear()
         closedSet.Clear()
         Dim openSet As New PriorityQueue(Of Double, Point)
-
         Dim parent As New Dictionary(Of Point, Point)
         gweight(mentry) = 0
         openSet.Enqueue(CalculateDistance(mentry, mexit), mentry)
@@ -580,28 +578,37 @@ Public Class Form1
                 ' Reconstruct and return the path if the destination is reached
                 Return ReconstructPath(currentNode)
             End If
-            '     For Each neighbour In maze(currentNode.X, currentNode.Y).concell
+
 
 
             For Each neighbour In GetNeighbours(currentNode)
-                    If closedSet.Contains(neighbour) Then
+                    If closedset.Contains(neighbour) Then
                         Continue For ' Skip already checked nodes
                     End If
 
                     H = gweight(currentNode) + CalculateDistance(currentNode, neighbour)
+                    ' Update the neighbours gWeight and parent if the heuristic weight is lower
+                    If H < gweight(neighbour) Then
+                        parent(neighbour) = currentNode
+                        gweight(neighbour) = H
+                        maxweight = Math.Max(maxweight, H)
+                        F = gweight(neighbour) + CalculateDistance(neighbour, mexit)
 
-                    F = gweight(neighbour) + CalculateDistance(neighbour, mexit)
 
-                    If Not openSet.Contains(neighbour) OrElse H < gweight(neighbour) Then
                         If Not openSet.Contains(neighbour) Then
                             openSet.Enqueue(F, neighbour)
                         End If
                     End If
-                '  Next
-            Next
-        End While
 
-        Return New List(Of Point)() ' No path found (Failure Case)
+                Next
+        End While
+        Dim current As Point = mexit
+        While current <> mentry AndAlso parent.ContainsKey(current)
+            current = parent(current)
+            If current <> mentry Then
+                path.Enqueue(current)
+            End If
+        End While
     End Function '2 error
 
     Private Function Dijkstra()
@@ -609,8 +616,8 @@ Public Class Form1
 
         Dim parent As New Dictionary(Of Point, Point)
 
-
-        openSet.Enqueue(CalculateDistance(mentry, mexit), mentry)
+        gweight(mentry) = 0
+        openSet.Enqueue(0, mentry)
 
         While openSet.Count > 0
             ' Find the node with the minimum cost in the open set
@@ -619,36 +626,36 @@ Public Class Form1
             closedSet.Enqueue(currentNode)
 
             If currentNode.Equals(mexit) Then
-                ' Reconstruct and return the path if the destination is reached
+                'check if current node is the exit
                 Return ReconstructPath(currentNode)
             End If
-            For Each neighbour In GetNeighbours(currentNode)
+            For Each neighbour In maze(currentNode.X, currentNode.Y).concell
 
                 H = gweight(currentNode) + CalculateDistance(currentNode, neighbour)
                 F = gweight(neighbour) + 1
+
                 If Not openSet.Contains(neighbour) Then
                     openSet.Enqueue(F, neighbour)
-                ElseIf h >= gweight(neighbour) Then
+                ElseIf H >= gweight(neighbour) Then
                     Continue For ' Skip if not a better path
                 End If
 
                 gweight(neighbour) = F
-                Parent(neighbour) = currentNode
+                parent(neighbour) = currentNode
             Next
         End While
 
-        Return New List(Of Point)() ' No path found (Failure Case)
+        '  Return New List(Of Point)() ' No path found (Failure Case)
 
     End Function
 
-
     Function ReconstructPath(parent)
 
-        Dim currentNode As Point = mexit
-        While currentNode <> mentry AndAlso parent.ContainsKey(currentNode)
-            currentNode = parent(currentNode)
-            If currentNode <> mentry Then
-                path.Enqueue(currentNode)
+        Dim current As Point = mexit
+        While current <> mentry AndAlso parent.ContainsKey(current)
+            current = parent(current)
+            If current <> mentry Then
+                path.Enqueue(current)
             End If
         End While
     End Function
@@ -687,12 +694,12 @@ Public Class Form1
             Exit Sub
         End If
         generationAlgorithm = generationCombo.Text
-        Dim multiplier As Integer = Math.Floor(Math.Min(1220 / width, 690 / height))
-        If multiplier < 3 Then
-            MsgBox("ERROR: WIDTH >406 AND/OR HEIGHT >230" & vbCrLf & "Want to download maze?" & vbCrLf & "WARNING! DEPENDING ON HARDWARE THIS MAY TAKE A LONG TIME", MsgBoxStyle.OkCancel)
+        If Math.Floor(Math.Min(1222 / Int(widthTxtBox.Text), 690 / Int(heightTxtBox.Text))) < 3 Then
+            MsgBox("WIDTH >407 AND/OR HEIGHT >230" & vbCrLf & "Do you wish to download maze?", MsgBoxStyle.OkCancel, "ERROR:")
+
         Else
 
-            m = multiplier
+            m = Math.Floor(Math.Min(1222 / Int(widthTxtBox.Text), 690 / Int(heightTxtBox.Text)))
         End If
 
         ' Initializes the maze
@@ -739,14 +746,6 @@ Public Class Form1
         For Each cell In maze
             cell.msol = False
         Next
-
-        ' Checks if the maze can be displayed
-        If Math.Floor(Math.Min(1220 / Int(widthTxtBox.Text), 690 / Int(heightTxtBox.Text))) < 3 Then
-            ' If it cant be displayed ask if they want to download
-            MsgBox("Maze is too big to display!" & vbCrLf & "Want to download?" & vbCrLf & "WARNING! DEPENDING ON HARDWARE THIS MAY TAKE A LONG TIME", MsgBoxStyle.OkCancel, "Maze too big!")
-            ' If they don't want to download exit sub
-
-        End If
 
         ' Resets old timer, Starts new timer, Upates Status
         solveTimer.Reset()
