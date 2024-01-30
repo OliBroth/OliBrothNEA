@@ -1,4 +1,5 @@
 'epicly shit
+'DOA 18:13 30/1/2024
 Imports System.Threading
 Imports OB_NEA.Form1
 Imports System.Collections.Generic
@@ -611,39 +612,60 @@ Public Class Form1
         End While
     End Function '2 error
 
-    Private Function Dijkstra()
+   Private Function Dijkstra()
+        gweight.Clear()
+        closedset.Clear()
         Dim openSet As New PriorityQueue(Of Double, Point)
-
         Dim parent As New Dictionary(Of Point, Point)
 
         gweight(mentry) = 0
         openSet.Enqueue(0, mentry)
 
-        While openSet.Count > 0
+        While Not openSet.isEmpty()
             ' Find the node with the minimum cost in the open set
             Dim currentNode As Point = openSet.Dequeue()
 
             closedSet.Enqueue(currentNode)
 
-            If currentNode.Equals(mexit) Then
-                'check if current node is the exit
-                Return ReconstructPath(currentNode)
+            If currentNode.Equals(mexit) Then 'maze gets solved by dumb ai
+                Exit While
+
             End If
-            For Each neighbour In maze(currentNode.X, currentNode.Y).concell
+            For Each neighbour In maze(currentNode.X, currentNode.Y).concell 'well you fucking are a member of form1.cell, 30 seconds ago you were.
+                ' Calculate weight of neighbour. In this to get to a connected node holds a weight of 1
+                Dim f As Double = gweight(currentNode) + 1
 
-                H = gweight(currentNode) + CalculateDistance(currentNode, neighbour)
-                F = gweight(neighbour) + 1
-
-                If Not openSet.Contains(neighbour) Then
-                    openSet.Enqueue(F, neighbour)
-                ElseIf H >= gweight(neighbour) Then
-                    Continue For ' Skip if not a better path
+                ' If the neighbour's weight is not already in the dictionary, set it to a large value
+                If Not gweight.ContainsKey(neighbour) Then
+                    gweight(neighbour) = Double.MaxValue
                 End If
 
-                gweight(neighbour) = F
-                parent(neighbour) = currentNode
+                ' Update the neighbours weight and parent if the calculated weight is less
+                If f < gweight(neighbour) Then
+                    gweight(neighbour) = f
+                    maxweight = Math.Max(maxweight, f)
+                    parent(neighbour) = currentNode
+
+                    ' If the neight is not in the priority queue, add it
+                    If Not openSet.Contains(neighbour) Then
+                        openSet.Enqueue(f, neighbour)
+                    End If
+                End If
             Next
         End While
+        'drawing the cheeky fucker
+        Dim current As Point = mexit
+        While current <> mentry AndAlso parent.ContainsKey(current)
+            current = parent(current)
+            If current <> mentry Then
+                path.Enqueue(current)
+            End If
+        End While
+
+        For Each node In path
+            maze(node.X, node.Y).msol = True
+        Next
+        path.Clear()
 
         '  Return New List(Of Point)() ' No path found (Failure Case)
 
