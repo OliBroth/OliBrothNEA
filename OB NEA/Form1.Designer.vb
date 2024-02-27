@@ -1,4 +1,4 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class Form1
     Inherits System.Windows.Forms.Form
 
@@ -44,9 +44,12 @@ Partial Class Form1
         Me.mSaveBtn = New System.Windows.Forms.Button()
         Me.PictureBox2 = New System.Windows.Forms.PictureBox()
         Me.gentimelbl = New System.Windows.Forms.Label()
-        Me.Label7 = New System.Windows.Forms.Label()
-        Me.Label8 = New System.Windows.Forms.Label()
+        Me.sollbl = New System.Windows.Forms.Label()
+        Me.drawlbl = New System.Windows.Forms.Label()
         Me.gentimer = New System.Windows.Forms.Timer(Me.components)
+        Me.solvedpathtimer = New System.Windows.Forms.Timer(Me.components)
+        Me.searchtimer = New System.Windows.Forms.Timer(Me.components)
+        Me.animationbtn = New System.Windows.Forms.CheckBox()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -126,6 +129,7 @@ Partial Class Form1
         '
         Me.PictureBox1.BackColor = System.Drawing.Color.White
         Me.PictureBox1.Location = New System.Drawing.Point(672, 152)
+        Me.PictureBox1.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.PictureBox1.Name = "PictureBox1"
         Me.PictureBox1.Size = New System.Drawing.Size(1220, 691)
         Me.PictureBox1.TabIndex = 11
@@ -143,7 +147,7 @@ Partial Class Form1
         Me.heightTxtBox.Name = "heightTxtBox"
         Me.heightTxtBox.Size = New System.Drawing.Size(273, 53)
         Me.heightTxtBox.TabIndex = 14
-        Me.heightTxtBox.Text = "5"
+        Me.heightTxtBox.Text = "6"
         Me.heightTxtBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'widthTxtBox
@@ -158,7 +162,7 @@ Partial Class Form1
         Me.widthTxtBox.Name = "widthTxtBox"
         Me.widthTxtBox.Size = New System.Drawing.Size(273, 53)
         Me.widthTxtBox.TabIndex = 19
-        Me.widthTxtBox.Text = "5"
+        Me.widthTxtBox.Text = "6"
         Me.widthTxtBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'generationCombo
@@ -169,12 +173,13 @@ Partial Class Form1
         Me.generationCombo.Font = New System.Drawing.Font("Microsoft Sans Serif", 24.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
         Me.generationCombo.ForeColor = System.Drawing.Color.Black
         Me.generationCombo.FormattingEnabled = True
-        Me.generationCombo.Items.AddRange(New Object() {"DFS ", "Hunt & Kill"})
+        Me.generationCombo.Items.AddRange(New Object() {"DFS ", "Hunt And Kill"})
         Me.generationCombo.Location = New System.Drawing.Point(389, 374)
         Me.generationCombo.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.generationCombo.Name = "generationCombo"
         Me.generationCombo.Size = New System.Drawing.Size(273, 45)
-        Me.generationCombo.TabIndex = 1
+        Me.generationCombo.TabIndex = 28
+        Me.generationCombo.Text = "Select Algorithm:"
         '
         'solveCombo
         '
@@ -190,6 +195,7 @@ Partial Class Form1
         Me.solveCombo.Name = "solveCombo"
         Me.solveCombo.Size = New System.Drawing.Size(273, 45)
         Me.solveCombo.TabIndex = 29
+        Me.solveCombo.Text = "Select Algorithm:"
         '
         'Label9
         '
@@ -293,39 +299,51 @@ Partial Class Form1
         Me.gentimelbl.TabIndex = 38
         Me.gentimelbl.Text = "Generation Time"
         '
-        'Label7
+        'sollbl
         '
-        Me.Label7.AutoSize = True
-        Me.Label7.BackColor = System.Drawing.SystemColors.GradientActiveCaption
-        Me.Label7.Font = New System.Drawing.Font("Microsoft Sans Serif", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-        Me.Label7.Location = New System.Drawing.Point(61, 846)
-        Me.Label7.Name = "Label7"
-        Me.Label7.Size = New System.Drawing.Size(119, 25)
-        Me.Label7.TabIndex = 39
-        Me.Label7.Text = "Solve Time"
+        Me.sollbl.AutoSize = True
+        Me.sollbl.BackColor = System.Drawing.SystemColors.GradientActiveCaption
+        Me.sollbl.Font = New System.Drawing.Font("Microsoft Sans Serif", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+        Me.sollbl.Location = New System.Drawing.Point(61, 846)
+        Me.sollbl.Name = "sollbl"
+        Me.sollbl.Size = New System.Drawing.Size(119, 25)
+        Me.sollbl.TabIndex = 39
+        Me.sollbl.Text = "Solve Time"
         '
-        'Label8
+        'drawlbl
         '
-        Me.Label8.AutoSize = True
-        Me.Label8.BackColor = System.Drawing.SystemColors.GradientActiveCaption
-        Me.Label8.Font = New System.Drawing.Font("Microsoft Sans Serif", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-        Me.Label8.Location = New System.Drawing.Point(61, 786)
-        Me.Label8.Name = "Label8"
-        Me.Label8.Size = New System.Drawing.Size(120, 25)
-        Me.Label8.TabIndex = 40
-        Me.Label8.Text = "Draw Time "
+        Me.drawlbl.AutoSize = True
+        Me.drawlbl.BackColor = System.Drawing.SystemColors.GradientActiveCaption
+        Me.drawlbl.Font = New System.Drawing.Font("Microsoft Sans Serif", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+        Me.drawlbl.Location = New System.Drawing.Point(61, 786)
+        Me.drawlbl.Name = "drawlbl"
+        Me.drawlbl.Size = New System.Drawing.Size(120, 25)
+        Me.drawlbl.TabIndex = 40
+        Me.drawlbl.Text = "Draw Time "
         '
-        'gentimer
+        'animationbtn
         '
+        Me.animationbtn.AutoSize = True
+        Me.animationbtn.BackColor = System.Drawing.Color.Transparent
+        Me.animationbtn.Font = New System.Drawing.Font("Segoe UI", 29.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+        Me.animationbtn.ForeColor = System.Drawing.Color.White
+        Me.animationbtn.ImeMode = System.Windows.Forms.ImeMode.NoControl
+        Me.animationbtn.Location = New System.Drawing.Point(28, 62)
+        Me.animationbtn.Name = "animationbtn"
+        Me.animationbtn.Size = New System.Drawing.Size(235, 56)
+        Me.animationbtn.TabIndex = 41
+        Me.animationbtn.Text = "Animations"
+        Me.animationbtn.UseVisualStyleBackColor = False
         '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ActiveCaption
-        Me.ClientSize = New System.Drawing.Size(1904, 1041)
-        Me.Controls.Add(Me.Label8)
-        Me.Controls.Add(Me.Label7)
+        Me.ClientSize = New System.Drawing.Size(1904, 1161)
+        Me.Controls.Add(Me.animationbtn)
+        Me.Controls.Add(Me.drawlbl)
+        Me.Controls.Add(Me.sollbl)
         Me.Controls.Add(Me.gentimelbl)
         Me.Controls.Add(Me.PictureBox2)
         Me.Controls.Add(Me.mSaveBtn)
@@ -377,7 +395,10 @@ Partial Class Form1
     Friend WithEvents mSaveBtn As Button
     Friend WithEvents PictureBox2 As PictureBox
     Friend WithEvents gentimelbl As Label
-    Friend WithEvents Label7 As Label
-    Friend WithEvents Label8 As Label
+    Friend WithEvents sollbl As Label
+    Friend WithEvents drawlbl As Label
     Friend WithEvents gentimer As Timer
+    Friend WithEvents solvedpathtimer As Timer
+    Friend WithEvents searchtimer As Timer
+    Friend WithEvents animationbtn As CheckBox
 End Class
