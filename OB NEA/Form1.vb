@@ -1,5 +1,5 @@
 'epicly shit
-'DOA 18:13 30/1/2024
+'DOA 13:40 27/02/2024
 Imports System.Threading
 Imports OB_NEA.Form1
 Imports System.Collections.Generic
@@ -7,6 +7,7 @@ Imports System.Windows.Forms.VisualStyles.VisualStyleElement.ScrollBar
 Imports System.Windows.Forms.AxHost
 Imports System.Text.Json
 Imports System.Windows.Forms.VisualStyles
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar
 
 Public Class Form1
     'drawing form with its controllers
@@ -25,7 +26,8 @@ Public Class Form1
     Private mwallcount As Integer = 0
     Private totalcells As Integer = 0
 
-
+    Private azure As Color = Color.FromArgb(0, 127, 255)
+    Private steel As Color = Color.FromArgb(242, 133, 0)
     Private passedPath As New List(Of Point)
     Dim path As New Queue(Of Point)()
     Public cancelAnimation As Boolean = False
@@ -47,12 +49,10 @@ Public Class Form1
     Private solvealgorithm, generationAlgorithm As String 'test value
     'time variable
     Private solveTimer As New Stopwatch
-    Private generationTimer As New Stopwatch
+    Private generationtimer As New Stopwatch
     Private drawTimer As New Stopwatch
-
-
     Public Sub New()
-        ' This call is required by the designer.
+
         InitializeComponent()
         ' Add any initialization after the InitializeComponent() call.
 
@@ -60,7 +60,9 @@ Public Class Form1
 
         AddHandler GenBtn.Click, AddressOf GenBtn_Click
         AddHandler SolBtn.Click, AddressOf solBtn_Click
-
+        AddHandler gentimer.Tick, AddressOf gentimer_tick
+        AddHandler solvedpathtimer.Tick, AddressOf solvpath_tick
+        AddHandler searchtimer.Tick, AddressOf searchanimation_tick
         AddHandler mSaveBtn.Click, AddressOf mSaveBtn_click
 
     End Sub
@@ -117,6 +119,8 @@ Public Class Form1
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         'MsgBox("hello world")
+        widthTxtBox.Text = 25
+        heightTxtBox.Text = 25
 
 
 
@@ -124,8 +128,7 @@ Public Class Form1
     End Sub
     Private Sub InitializeMaze()
         ' Resets old timer, Starts new timer, Updates Status
-        statusLbl.Text = "Status: Initializing Maze"
-        statusLbl.Update()
+        UpdateStatusLabel("Initializing Maze")
 
         ' Initialize each cell with correct Type, Wall Position, 
         maze = New Cell(width, height) {}
@@ -211,26 +214,26 @@ Public Class Form1
     Private Sub drawMaze()
         drawTimer.Reset()
         drawTimer.Start()
-        statusLbl.Text = "Status: Drawing Maze"
-        statusLbl.Update()
+        UpdateStatusLabel("Drawing Maze")
+
         Using bbrush As New SolidBrush(Color.White)
             Using mazeBrush As New SolidBrush(Color.Black)
-                Using solBrush As New SolidBrush(Color.Fuchsia)
+                Using solBrush As New SolidBrush(Color.RebeccaPurple)
                     Using enBrush As New SolidBrush(Color.Green)
                         Using exBrush As New SolidBrush(Color.Red)
                             For Each cell In maze
                                 ' Determine the fill color based on cell properties
                                 Dim fillBrush As Brush = bbrush
-                                If cell.mwallbool Then
+                                If cell.mwallbool = True Then
                                     fillBrush = mazeBrush
                                 End If
-                                If cell.maentrybool Then
+                                If cell.maentrybool = True Then
                                     fillBrush = enBrush
                                 End If
-                                If cell.mexitbool Then
+                                If cell.mexitbool = True Then
                                     fillBrush = exBrush
                                 End If
-                                If cell.msol Then
+                                If cell.msolv = True Then
                                     fillBrush = solBrush
                                 End If
 
@@ -240,16 +243,17 @@ Public Class Form1
                                 ' Draw the walls
                                 cell.drawWalls()
                             Next
+                            'stop drawing
                         End Using
                     End Using
                 End Using
             End Using
         End Using
-        drawTimer.stop()
+        drawTimer.Stop()
     End Sub
     Private Sub reset()
         closedset.Clear()
-        path.clear()
+        path.Clear()
 
     End Sub
     Public Class Cell
@@ -260,20 +264,24 @@ Public Class Form1
         Public mwallbool As Boolean = False
         Public maentrybool As Boolean = False
         Public mexitbool As Boolean = False
-        Public msol As Boolean = False
+        Public msolv As Boolean = False
         'gen/sol properties
         Public visited As Boolean = False
         Public concell As New List(Of Point)
         Public Sub drawWalls()
-            For wall As Integer = 0 To 3
-                If walls(wall) = True And Form1.mazeColour = Color.Empty Then
-                    Form1.MazeGraphics.DrawLine(New Pen(Color.Black, psize), wallpos(wall, 0), wallpos(wall, 1))
-                    Form1.MazeGraphics.DrawLine(New Pen(Color.Black, psize), wallpos(wall, 0), wallpos(wall, 1))
-                ElseIf walls(wall) = True Then ' If user hasnt selected colour
-                    Form1.MazeGraphics.DrawLine(New Pen(Form1.mazeColour, psize), wallpos(wall, 0), wallpos(wall, 1))
-                    Form1.MazeGraphics.DrawLine(New Pen(Form1.mazeColour, psize), wallpos(wall, 0), wallpos(wall, 1))
-                End If
-            Next
+            With Form1.MazeGraphics
+                For wall As Integer = 0 To 3
+                    If walls(wall) = True And Form1.mazeColour = Color.Empty Then
+                        .DrawLine(New Pen(Color.Black, psize), wallpos(wall, 0), wallpos(wall, 1))
+                        .DrawLine(New Pen(Color.Black, psize), wallpos(wall, 0), wallpos(wall, 1))
+
+                    ElseIf walls(wall) = True Then
+                        .DrawLine(New Pen(Form1.mazeColour, psize), wallpos(wall, 0), wallpos(wall, 1))
+                        .DrawLine(New Pen(Form1.mazeColour, psize), wallpos(wall, 0), wallpos(wall, 1))
+
+                    End If
+                Next
+            End With
         End Sub
         Public Function removeWall(ByVal d As Integer)
             Dim directions As Point() = {New Point(0, -1), New Point(1, 0), New Point(0, 1), New Point(-1, 0)}
@@ -329,25 +337,42 @@ Public Class Form1
             ' Shuffle the neighbours list randomly only required by walkrandomly
             If rand = True Then
                 neighbours = Shuffle(neighbours)
+                Return neighbours
             End If
             Return neighbours
         End Function 'needs more references...
 
-        Function Shuffle(Of T)(ByVal list As List(Of T)) As List(Of T)
+        Private Function Shuffle(neighbours)
+            If mwallbool = True Then
+                Return {Point.Empty, Point.Empty, Point.Empty, Point.Empty}.ToList
+                Exit Function
+            End If
             Dim rand As New Random()
-            Dim n As Integer = list.Count
-
+            Dim n As Integer = neighbours.Count
             While n > 1
                 n -= 1
                 Dim k As Integer = rand.Next(n + 1)
-                Dim value As T = list(k)
-                list(k) = list(n)
-                list(n) = value
+                Dim value As Point = neighbours(k)
+                neighbours(k) = neighbours(n)
+                neighbours(n) = value
             End While
-
-            Return list
         End Function
+        Function GetDirectionTo(ByVal currentCell As Point, ByVal nextCell As Point) As Integer
+            Dim dx As Integer = nextCell.X - currentCell.X
+            Dim dy As Integer = nextCell.Y - currentCell.Y
 
+            If dx = 1 AndAlso dy = 0 Then
+                Return 0 ' Right
+            ElseIf dx = -1 AndAlso dy = 0 Then
+                Return 1 ' Left
+            ElseIf dx = 0 AndAlso dy = 1 Then
+                Return 2 ' Down
+            ElseIf dx = 0 AndAlso dy = -1 Then
+                Return 3 ' Up
+            Else
+                Throw New ArgumentException("Cells are not adjacent.")
+            End If
+        End Function
     End Class
 
     Private Sub DFS(ByVal x As Integer, ByVal y As Integer)
@@ -355,53 +380,57 @@ Public Class Form1
         genstack.Push(New Point(x, y))
 
         Dim direction As Integer
+        If animationbtn.Checked = True Then
+            gentimer.Enabled = True
+        Else
+            ' Loop until the stack is empty
+            While genstack.Count > 0
+                Dim currentCell = genstack.Peek()
+                Dim cell = maze(currentCell.X, currentCell.Y)
 
-        ' Loop until the stack is empty
-        While genstack.Count > 0
+                ' Mark the current cell as visited
+                cell.visited = True
 
-            Dim currentCell = genstack.Peek()
-            Dim cell = maze(currentCell.X, currentCell.Y)
+                ' Get the unvisited neighbors of the current cell
+                Dim unvisitedNeighbours = cell.GetUnvisitedNeighbours(False)
 
-            ' Mark the current cell as visited
-            cell.visited = True
+                ' If all neighbors are visited, pop another cell from the stack and continue the loop
+                If unvisitedNeighbours.All(Function(p) p.Equals(Point.Empty)) = True Then
+                    genstack.Pop()
+                    Continue While
+                End If
+                Dim valNeighbours = unvisitedNeighbours.Where(Function(p) p <> Point.Empty).ToList()
 
-            ' Get the unvisited neighbors of the current cell
-            Dim unvisitedNeighbours = cell.GetUnvisitedNeighbours(False)
-
-            ' If all neighbors are visited, pop another cell from the stack and continue the loop
-            If unvisitedNeighbours.All(Function(p) p.Equals(Point.Empty)) = True Then
-                genstack.Pop()
-                Continue While
-            End If
-            Dim valNeighbours = unvisitedNeighbours.Where(Function(p) p <> Point.Empty).ToList()
-
-            ' Randomly choose a valid direction from the list of non-empty neighbors
-            Randomize()
-            direction = unvisitedNeighbours.IndexOf(valNeighbours(random.Next(0, valNeighbours.Count())))
+                ' Randomly choose a valid direction from the list of non-empty neighbors
+                Randomize()
+                direction = unvisitedNeighbours.IndexOf(valNeighbours(random.Next(0, valNeighbours.Count())))
 
 
-            Dim neighbours = cell.removeWall(direction)
+                Dim neighbours = cell.removeWall(direction)
                 genstack.Push(neighbours)
-
-
-        End While
+            End While
+        End If
     End Sub
-    Private Sub HK(ByVal x As Integer, ByVal y As Integer)
 
-        ' Start at a random cell
-        Dim currentCell = RandomCellInMaze(x, y, random)
 
-        While currentCell IsNot Nothing
-            ' Walk randomly through the maze
-            WalkRandomly(currentCell)
-            Dim cell = maze(currentCell.X, currentCell.Y)
-            ' Hunt for an unvisited cell
-            currentCell = HuntForUnvisitedCell(maze, random, cell)
-        End While
-    End Sub ' no issues yet
+    Function DetermineDirectionToRemove(unvisitedNeighbors As List(Of Point), chosenNeighborIndex As Integer) As Integer
+        ' Calculate the number of unvisited neighbors
+        Dim numNeighbors As Integer = unvisitedNeighbors.Count
+
+        ' Define the directions (0: Up, 1: Right, 2: Down, 3: Left)
+        Dim directions() As Integer = {0, 1, 2, 3}
+
+        ' Calculate the direction based on the chosen neighbor index
+        Dim direction As Integer = (chosenNeighborIndex + 1) Mod 4 ' Adding 1 to start from 1 instead of 0
+
+        ' Return the calculated direction
+        Return directions(direction)
+
+    End Function
+    ' no issues yet
     Function WalkRandomly(currentcell)
         Dim direction As Integer
-        While currentcell IsNot nothing
+        While currentcell IsNot Nothing
             Dim cell = maze(currentcell.X, currentcell.Y)
             ' Mark the current cell as visited
             cell.visited = True
@@ -420,24 +449,23 @@ Public Class Form1
 
         End While
     End Function
-
     Function HuntForUnvisitedCell(maze, random, currentcell)
         Dim direction As Integer
         Dim cell = maze(currentcell.X, currentcell.Y)
-        For x As Integer = 0 To maze.GetLength(0) - 1
-            For y As Integer = 0 To maze.GetLength(1) - 1
-                If Not maze(x, y).visited Then
+        For i As Integer = 0 To maze.GetLength(0) - 1
+            For j As Integer = 0 To maze.GetLength(1) - 1
+                If Not maze(i, j).visited Then
 
                     ' The cell is unvisited
                     Dim unvisitedneighbour = cell.GetUnvisitedNeighbours(True) 'randomisation as rand is set to true
                     ' Filter out the empty values from the list of neighbors
-                    Dim validNeighbours = unvisitedNeighbour.Where(Function(point) point <> point.Empty).ToList()
-                    direction = unvisitedNeighbour.IndexOf(validNeighbours(random.Next(0, validNeighbours.Count())))
+                    Dim validNeighbours = unvisitedneighbour.Where(Function(point) point <> point.Empty).ToList()
+                    direction = unvisitedneighbour.IndexOf(validNeighbours(random.Next(0, validNeighbours.Count())))
                     ' Remove the wall between the cell and its unvisited neighbor
                     Dim neighbour = cell.removeWall(direction)
 
                     ' Return the unvisited neighbor
-                    Return neighbour
+                    currentcell = neighbour
                 End If
             Next
         Next
@@ -484,20 +512,18 @@ Public Class Form1
 
         Dim randx As Integer = random.Next(x)
         Dim randy As Integer = random.Next(y)
-
-        Return maze(randx, randy)
+        Dim randpoint As New Point(randx, randy)
+        Return randpoint
     End Function
-    Private Sub generationPointTimer_Tick(sender As Object, e As EventArgs) Handles gentimer.Tick
-
-
-        If generationAlgorithm = "DFS " Then
+    Private Sub gentimer_tick(sender As Object, e As EventArgs)
+        With MazeGraphics
             If genstack.Count > 0 Then
                 Dim currentCell = genstack.Peek()
                 Dim cell = maze(currentCell.X, currentCell.Y)
 
                 ' Highlight the top of the stack
                 If currentCell <> mentry And currentCell <> mexit Then
-                    MazeGraphics.FillRectangle(New SolidBrush(Color.Yellow), currentCell.X * m, currentCell.Y * m, m, m)
+                    .FillRectangle(New SolidBrush(Color.SteelBlue), currentCell.X * m, currentCell.Y * m, m, m)
                     maze(currentCell.X, currentCell.Y).drawWalls()
                 End If
 
@@ -506,21 +532,21 @@ Public Class Form1
                 cell.visited = True
 
                 ' Get a list of unvisited neighbors
-                Dim unvisitedNeighbours = cell.GetUnvisitedNeighbours(False)
+                Dim unvisitedNeighbors = cell.GetUnvisitedNeighbours(False)
 
-                If unvisitedNeighbours.All(Function(p) p.Equals(Point.Empty)) = True Then
+                If unvisitedNeighbors.All(Function(p) p.Equals(Point.Empty)) = True Then
                     genstack.Pop()
                 Else
                     ' Make a new list that only contains the non empty values from neighbour
-                    Dim validNeigbours As New List(Of Point)
-                    For Each point In unvisitedNeighbours
+                    Dim valNeigbours As New List(Of Point)
+                    For Each point In unvisitedNeighbors
                         If point <> Point.Empty Then
-                            validNeigbours.Add(point)
+                            valNeigbours.Add(point)
                         End If
                     Next
 
                     ' Randomly pick a valid neighbour. Find the index of that point within the orginal neighbour list and set that to direction
-                    Dim direction = unvisitedNeighbours.IndexOf(validNeigbours(random.Next(0, validNeigbours.Count())))
+                    Dim direction = unvisitedNeighbors.IndexOf(valNeigbours(random.Next(0, valNeigbours.Count())))
 
                     ' Break the wall between the current cell and the chosen neighbor
                     Dim randomNeighbor = cell.removeWall(direction)
@@ -535,7 +561,9 @@ Public Class Form1
 
                 ' Resrt the top of the stack
                 If currentCell <> mentry And currentCell <> mexit Then
-                    MazeGraphics.FillRectangle(New SolidBrush(Color.White), currentCell.X * m, currentCell.Y * m, m, m)
+
+                    .FillRectangle(New SolidBrush(Color.White), currentCell.X * m, currentCell.Y * m, m, m)
+
                     maze(currentCell.X, currentCell.Y).drawWalls()
                 End If
             Else
@@ -544,75 +572,76 @@ Public Class Form1
                 PictureBox1.Image = mazeimage
                 PictureBox1.Update()
 
-
+                ' animationLock(False)
                 ' Stop the timer when the maze is complete
                 gentimer.Enabled = False
             End If
-
-        Else
-            drawMaze()
-            ' Update the maze and the maze display
-            PictureBox1.Image = mazeimage
-            PictureBox1.Update()
-
-
-            ' Stop the timer when the maze is complete
-            gentimer.Enabled = False
-        End If
+        End With
     End Sub
-
     'solving
     Private Function astar()
         gweight.Clear()
-        closedSet.Clear()
+        closedset.Clear()
         Dim openSet As New PriorityQueue(Of Double, Point)
         Dim parent As New Dictionary(Of Point, Point)
         gweight(mentry) = 0
-        openSet.Enqueue(CalculateDistance(mentry, mexit), mentry)
+        openSet.Enqueue(Manhattan(mentry, mexit), mentry)
         While Not openSet.isEmpty()
 
             Dim currentNode As Point = openSet.Dequeue()
 
-            closedSet.Enqueue(currentNode)
+            closedset.Enqueue(currentNode)
 
             If currentNode = mexit Then
                 ' Reconstruct and return the path if the destination is reached
-                Return ReconstructPath(currentNode)
+                Exit While
             End If
 
 
 
-            For Each neighbour In GetNeighbours(currentNode)
-                    If closedset.Contains(neighbour) Then
-                        Continue For ' Skip already checked nodes
+            For Each neighbour In maze(currentNode.X, currentNode.Y).concell 'GetNeighbours(currentNode) 'just going to add this fucker to see what happens. 
+                If closedset.Contains(neighbour) Then
+                    Continue For ' Skip already checked nodes
+                End If
+
+                H = gweight(currentNode) + Manhattan(currentNode, neighbour)
+                If Not gweight.ContainsKey(neighbour) Then
+                    gweight(neighbour) = Double.MaxValue
+                End If
+                ' Update the neighbours gWeight and parent if the heuristic weight is lower
+                If H < gweight(neighbour) Then
+                    parent(neighbour) = currentNode
+                    gweight(neighbour) = H
+                    maxweight = Math.Max(maxweight, H)
+                    F = gweight(neighbour) + Manhattan(neighbour, mexit)
+
+
+                    If Not openSet.Contains(neighbour) Then
+                        openSet.Enqueue(F, neighbour)
                     End If
+                End If
 
-                    H = gweight(currentNode) + CalculateDistance(currentNode, neighbour)
-                    ' Update the neighbours gWeight and parent if the heuristic weight is lower
-                    If H < gweight(neighbour) Then
-                        parent(neighbour) = currentNode
-                        gweight(neighbour) = H
-                        maxweight = Math.Max(maxweight, H)
-                        F = gweight(neighbour) + CalculateDistance(neighbour, mexit)
+            Next
+            Dim current As Point = mexit
+            While current <> mentry AndAlso parent.ContainsKey(current)
+                current = parent(current)
+                If current <> mentry Then
+                    path.Enqueue(current)
+                End If
+            End While
 
-
-                        If Not openSet.Contains(neighbour) Then
-                            openSet.Enqueue(F, neighbour)
-                        End If
-                    End If
-
+            reconstruct(parent, False)
+            If animationbtn.Checked = False Then
+                ' Marking the solution in the maze
+                For Each node In path
+                    maze(node.X, node.Y).msolv = True
                 Next
-        End While
-        Dim current As Point = mexit
-        While current <> mentry AndAlso parent.ContainsKey(current)
-            current = parent(current)
-            If current <> mentry Then
-                path.Enqueue(current)
+            ElseIf animationbtn.Checked = True Then
+                searchtimer.Enabled = True
             End If
         End While
     End Function '2 error
-
-   Private Function Dijkstra()
+    Private Sub Dijkstra()
         gweight.Clear()
         closedset.Clear()
         Dim openSet As New PriorityQueue(Of Double, Point)
@@ -625,35 +654,34 @@ Public Class Form1
             ' Find the node with the minimum cost in the open set
             Dim currentNode As Point = openSet.Dequeue()
 
-            closedSet.Enqueue(currentNode)
+            closedset.Enqueue(currentNode)
 
-            If currentNode.Equals(mexit) Then 'maze gets solved by dumb ai
+            If currentNode.Equals(mexit) Then ' Maze gets solved by the dumb ai
                 Exit While
-
             End If
-            For Each neighbour In maze(currentNode.X, currentNode.Y).concell 'well you fucking are a member of form1.cell, 30 seconds ago you were.
-                ' Calculate weight of neighbour. In this to get to a connected node holds a weight of 1
-                Dim f As Double = gweight(currentNode) + 1
+
+            For Each neighbour In maze(currentNode.X, currentNode.Y).concell ' Well, you were a member of form1.cell 30 seconds ago. 'GetNeighbours(currentNode) fucker doesnt work. walls innit
+                ' Calculate weight of neighbour. In this case, getting to a connected node holds a weight of 1
+                F = gweight(currentNode) + 1
 
                 ' If the neighbour's weight is not already in the dictionary, set it to a large value
                 If Not gweight.ContainsKey(neighbour) Then
                     gweight(neighbour) = Double.MaxValue
                 End If
 
-                ' Update the neighbours weight and parent if the calculated weight is less
-                If f < gweight(neighbour) Then
-                    gweight(neighbour) = f
-                    maxweight = Math.Max(maxweight, f)
+                ' Update the neighbour's weight and parent if the calculated weight is less
+                If F < gweight(neighbour) Then
+                    gweight(neighbour) = F
+                    maxweight = Math.Max(maxweight, F)
                     parent(neighbour) = currentNode
 
-                    ' If the neight is not in the priority queue, add it
+                    ' If the neighbour is not in the priority queue, add it
                     If Not openSet.Contains(neighbour) Then
-                        openSet.Enqueue(f, neighbour)
+                        openSet.Enqueue(F, neighbour)
                     End If
                 End If
             Next
         End While
-        'drawing the cheeky fucker
         Dim current As Point = mexit
         While current <> mentry AndAlso parent.ContainsKey(current)
             current = parent(current)
@@ -662,29 +690,105 @@ Public Class Form1
             End If
         End While
 
-        For Each node In path
-            maze(node.X, node.Y).msol = True
-        Next
-        path.Clear()
+        reconstruct(parent, False)
+        If animationbtn.Checked = False Then
+            ' Marking the solution in the maze
+            For Each node In path
+                maze(node.X, node.Y).msolv = True
+            Next
+        ElseIf animationbtn.Checked = True Then
+            searchtimer.Enabled = True
+        End If
 
-        '  Return New List(Of Point)() ' No path found (Failure Case)
 
+
+
+    End Sub
+    Public Function reconstruct(parent As Dictionary(Of Point, Point), full As Boolean)
+        If full = True Then
+            Dim current As Point = mexit
+            While current <> mentry AndAlso parent.ContainsKey(current)
+                current = parent(current)
+                If current <> mentry Then
+                    path.Enqueue(current)
+                End If
+            End While
+
+            For Each node In path
+                maze(node.X, node.Y).msolv = True
+            Next
+        ElseIf full = False Then
+            Dim current As Point = mexit
+            While current <> mentry AndAlso parent.ContainsKey(current)
+                current = parent(current)
+                If current <> mentry Then
+                    path.Enqueue(current)
+                End If
+            End While
+        End If
     End Function
-
-    Function ReconstructPath(parent)
-
-        Dim current As Point = mexit
-        While current <> mentry AndAlso parent.ContainsKey(current)
-            current = parent(current)
-            If current <> mentry Then
-                path.Enqueue(current)
-            End If
-        End While
-    End Function
-    Private Function CalculateDistance(point1 As Point, point2 As Point) As Double
+    Private Function Manhattan(point1 As Point, point2 As Point) As Double
         Return Math.Abs(point1.X - point2.X) + Math.Abs(point1.Y - point2.Y)
     End Function
+    Function coloursarecool(colour1 As Color, colour2 As Color, ratio As Double) As Color
+        Dim r As Double = Int(colour1.R) + (Int(colour2.R) - Int(colour1.R)) * ratio
+        Dim g As Double = Int(colour1.G) + (Int(colour2.G) - Int(colour1.G)) * ratio
+        Dim b As Double = Int(colour1.B) + (Int(colour2.B) - Int(colour1.B)) * ratio
+        Return Color.FromArgb((r), (g), (b))
+    End Function
+    Private Sub searchanimation_tick(sender As Object, e As EventArgs)
 
+        If closedset.Count > 0 Then
+            Dim Pnt As Point = closedset.Dequeue
+            If Pnt <> mentry And Pnt <> mexit Then
+                Dim realweight As Double = gweight(Pnt) / maxweight
+                MazeGraphics.FillRectangle(New SolidBrush(coloursarecool(azure, steel, realweight)), Pnt.X * m, Pnt.Y * m, m, m)
+                maze(Pnt.X, Pnt.Y).drawWalls()
+                PictureBox1.Image = mazeimage
+                PictureBox1.Update()
+            End If
+        Else
+            closedset.Clear()
+            drawMaze()
+            searchtimer.Enabled = False
+            solvedpathtimer.Enabled = True
+        End If
+    End Sub
+    Private Sub solvpath_tick(sender As Object, e As EventArgs)
+        With MazeGraphics
+            If path.Count > 0 Then
+                Dim current As Point = path.Dequeue
+                If passedPath.Count > 0 Then
+                    Dim previous As Point = passedPath.Last()
+                    .FillRectangle(New SolidBrush(Color.RebeccaPurple), previous.X * m, previous.Y * m, m, m)
+                    maze(previous.X, previous.Y).drawWalls()
+                End If
+                'currentcell colour
+                .FillRectangle(New SolidBrush(Color.SteelBlue), current.X * m, current.Y * m, m, m)
+
+                maze(current.X, current.Y).drawWalls()
+                passedPath.Add(current)
+
+                maze(current.X, current.Y).msolv = True
+
+                PictureBox1.Image = mazeimage
+                PictureBox1.Update()
+            Else
+                If passedPath.Count > 0 Then
+                    Dim last As Point = passedPath.Last()
+                    .FillRectangle(New SolidBrush(Color.RebeccaPurple), last.X * m, last.Y * m, m, m)
+                    maze(last.X, last.Y).drawWalls()
+
+                    ' Updates maze box
+                    PictureBox1.Image = mazeimage
+                    PictureBox1.Update()
+                End If
+                solvedpathtimer.Enabled = False
+                path.Clear()
+                passedPath.Clear()
+            End If
+        End With
+    End Sub
     Private Function GetNeighbours(location As Point) As List(Of Point)
         Dim neighbours As New List(Of Point)()
 
@@ -731,11 +835,9 @@ Public Class Form1
 
         ' Resets old timer, Starts new timer, Updates Status
         UpdateStatusLabel("Generating")
-        ' Resets old timer, Starts new timer, Upates Status
-        statusLbl.Text = "Status: Generating"
-        statusLbl.Update()
 
-        gentimer.Start()
+        generationtimer.Reset()
+        generationtimer.Start()
         ' Checks what generation algorithm the user has chosen
         If generationAlgorithm = "DFS " Then
 
@@ -744,15 +846,16 @@ Public Class Form1
         End If
         If generationAlgorithm = "Hunt And Kill" Then
 
-            HK(random.Next(1, width), random.Next(1, height))
+            'HK(random.Next(1, width), random.Next(1, height))
 
         End If
-        gentimer.Stop()
+        generationtimer.Stop()
         ' Draws the generated maze
         drawMaze()
-        PictureBox1.Image = mazeimage
-        gentimelbl.Text = "Generation Time: " & Str(generationTimer.ElapsedMilliseconds() / 1000) & "s"
-        ' Resets Status, ' Resets Dialog Result
+        PictureBox1.Image = mazeimage 'updating the output image to be unsolved maze
+        gentimelbl.Text = "Generation Time: " & Str(generationtimer.ElapsedMilliseconds() / 1000) & "s"
+        drawlbl.Text = "Draw Time: " & Str(drawTimer.ElapsedMilliseconds() / 1000) & "s"
+        sollbl.Text = "Solve Time "
         UpdateStatusLabel("Doing Nothing")
     End Sub
     Private Sub solBtn_Click(sender As Object, e As EventArgs) Handles SolBtn.Click
@@ -764,16 +867,22 @@ Public Class Form1
         ' Sets solving algorithim to what the user has selected
         solvealgorithm = solveCombo.Text
 
-        ' Reset all cells that have .mazeSolved = True
+        ' Reset all cells that have .mSolv = True
         For Each cell In maze
-            cell.msol = False
+            cell.msolv = False
         Next
 
+        ' Checks if the maze can be displayed (again)
+        If Math.Floor(Math.Min(1222 / Int(widthTxtBox.Text), 690 / Int(heightTxtBox.Text))) < 3 Then
+            MsgBox("Maze is too big to display!")
+        End If
+
         ' Resets old timer, Starts new timer, Upates Status
+
+        UpdateStatusLabel("Solving")
         solveTimer.Reset()
         solveTimer.Start()
-        statusLbl.Text = "Status: Solving"
-        statusLbl.Update()
+
         ' Checks what solving algorithm user has chosen
         If solvealgorithm = "Dijkstra's" Then
             Dijkstra()
@@ -781,14 +890,17 @@ Public Class Form1
         ElseIf solvealgorithm = "A*" Then
             astar()
         End If
+        solveTimer.Stop()
         ' Upadtes Maze box
         drawMaze()
-
+        PictureBox1.Image = mazeimage 'bane of my existance. took too long to actually realise this was missing and hence my maze was not drawing...
+        ' Resets Status
+        sollbl.Text = "Solve Time: " & Str(solveTimer.ElapsedMilliseconds() / 1000) & "s"
+        UpdateStatusLabel("Solution Drawn")
     End Sub
     Private Sub UpdateStatusLabel(ByVal status As String)
         statusLbl.Text = "Status: " & status
         statusLbl.Update()
-
     End Sub
     Private Sub savemaze()
         If mazegen = True Then
