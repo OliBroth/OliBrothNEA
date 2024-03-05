@@ -1,5 +1,4 @@
-'epicly shit
-'DOA 13:40 27/02/2024
+'DOA 11:30 05/03/2024
 Imports System.Threading
 Imports OB_NEA.Form1
 Imports System.Collections.Generic
@@ -23,11 +22,12 @@ Public Class Form1
     Private width, height As Integer
     Private mentry, mexit As Point
     Private deadEnd As New List(Of Point)
+    Private entryexit As String
     Private mwallcount As Integer = 0
     Private totalcells As Integer = 0
 
     Private azure As Color = Color.FromArgb(0, 127, 255)
-    Private steel As Color = Color.FromArgb(242, 133, 0)
+    Private steel As Color = Color.FromArgb(242, 133, 0) 'tangerine
     Private passedPath As New List(Of Point)
     Dim path As New Queue(Of Point)()
     Public cancelAnimation As Boolean = False
@@ -35,6 +35,8 @@ Public Class Form1
     Private mazegen As Boolean = False
     'in dfs
     Dim genstack As New Stack(Of Point)
+    'hk
+    Private huntTargets As New List(Of Point)
 
 
     'astar/dijkstra
@@ -44,18 +46,19 @@ Public Class Form1
     Private G As Double ' Cost from the start node
     Private H As Double ' Heuristic value
     Private F As Double ' Total cost (G + H)
-
-
     Private solvealgorithm, generationAlgorithm As String 'test value
     'time variable
     Private solveTimer As New Stopwatch
     Private generationtimer As New Stopwatch
     Private drawTimer As New Stopwatch
+
+    'some crackhead mp4 animation type aaa shit 
+    Private imageFrames As New List(Of Bitmap)
+    Private framecounter As Integer = 0
     Public Sub New()
 
         InitializeComponent()
         ' Add any initialization after the InitializeComponent() call.
-
 
 
         AddHandler GenBtn.Click, AddressOf GenBtn_Click
@@ -64,6 +67,7 @@ Public Class Form1
         AddHandler solvedpathtimer.Tick, AddressOf solvpath_tick
         AddHandler searchtimer.Tick, AddressOf searchanimation_tick
         AddHandler mSaveBtn.Click, AddressOf mSaveBtn_click
+
 
     End Sub
     Public Class PriorityQueue(Of priority As IComparable, value)
@@ -116,12 +120,11 @@ Public Class Form1
             Return False
         End Function
     End Class
-
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         'MsgBox("hello world")
         widthTxtBox.Text = 25
         heightTxtBox.Text = 25
-
+        entryexitcombo.SelectedIndex = 0 ' Default displays "Random"
 
 
 
@@ -169,25 +172,79 @@ Public Class Form1
     End Sub
     Private Sub mEntryExit()
 
-        ' Randomly picks a side
-        Dim side As Integer = random.Next(1, 2)
 
 
-        Randomize()
+
+
         'random protection will repeat if start and finish point are the same
         Do
-            Dim randomType As Integer = random.Next(0, 4)
+
 
             ' Start and finish positions for each random type
             Dim entryX, entryY, exitX, exitY As Integer
+            Select Case entryexit
+                Case "Random"
+                    Randomize()
+                    Dim randomType As Integer = random.Next(0, 5)
+                    Select Case randomType
+                    Case 0, 1 ' Start at a random top or bottom position
+                        entryX = random.Next(1, width)
+                        entryY = If(randomType = 0, 1, height - 1)
+                        exitX = random.Next(1, width)
+                        exitY = If(randomType = 0, height - 1, 1)
+                    Case 2, 3 ' Start at a random right or left position
+                        entryX = If(randomType = 2, 1, width - 1)
+                        entryY = random.Next(1, height)
+                        exitX = If(randomType = 2, width - 1, 1)
+                            exitY = random.Next(1, height)
+                        Case 4
+                            entryX = width \ 2
+                            entryY = height \ 2
+                            Dim randomSide As Integer = random.Next(1, 5) ' Randomly select top, bottom, left, or right
 
-            Select Case randomType
-                Case 0, 1 ' Start at a random top or bottom position
+                            Select Case randomSide
+                                Case 1 ' Top side
+                                    exitX = random.Next(width)
+                                    exitY = 1
+                                Case 2 ' Bottom side
+                                    exitX = random.Next(width)
+                                    exitY = height - 1
+                                Case 3 ' Left side
+                                    exitX = 1
+                                    exitY = random.Next(height)
+                                Case 4 ' Right side
+                                    exitX = width - 1
+                                    exitY = random.Next(height)
+                            End Select
+                    End Select
+                Case "Labyrinth"
+                    entryX = width \ 2
+                    entryY = height \ 2
+                    Dim randomSide As Integer = random.Next(1, 5) ' Randomly select top, bottom, left, or right exit 
+
+                    Select Case randomSide
+                        Case 1 ' Top side
+                            exitX = random.Next(width)
+                            exitY = 1
+                        Case 2 ' Bottom side
+                            exitX = random.Next(width)
+                            exitY = height - 1
+                        Case 3 ' Left side
+                            exitX = 1
+                            exitY = random.Next(height)
+                        Case 4 ' Right side
+                            exitX = width - 1
+                            exitY = random.Next(height)
+                    End Select
+
+                Case "Top/Bottom"
+                    Dim randomType As Integer = random.Next(0, 4)
                     entryX = random.Next(1, width)
                     entryY = If(randomType = 0, 1, height - 1)
                     exitX = random.Next(1, width)
                     exitY = If(randomType = 0, height - 1, 1)
-                Case 2, 3 ' Start at a random right or left position
+                Case "Left/Right"
+                    Dim randomType As Integer = random.Next(0, 4)
                     entryX = If(randomType = 2, 1, width - 1)
                     entryY = random.Next(1, height)
                     exitX = If(randomType = 2, width - 1, 1)
@@ -222,7 +279,7 @@ Public Class Form1
                     Using enBrush As New SolidBrush(Color.Green)
                         Using exBrush As New SolidBrush(Color.Red)
                             For Each cell In maze
-                                ' Determine the fill color based on cell properties
+                                ' Determine the fill colour based on cell properties
                                 Dim fillBrush As Brush = bbrush
                                 If cell.mwallbool = True Then
                                     fillBrush = mazeBrush
@@ -334,15 +391,15 @@ Public Class Form1
                 End If
             Next
 
-            ' Shuffle the neighbours list randomly only required by walkrandomly
+            ' Shuffle the neighbours list 
             If rand = True Then
                 neighbours = Shuffle(neighbours)
                 Return neighbours
             End If
             Return neighbours
-        End Function 'needs more references...
+        End Function
 
-        Private Function Shuffle(neighbours)
+        Private Function Shuffle(neighbours) 'doesnt work 
             If mwallbool = True Then
                 Return {Point.Empty, Point.Empty, Point.Empty, Point.Empty}.ToList
                 Exit Function
@@ -382,6 +439,7 @@ Public Class Form1
         Dim direction As Integer
         If animationbtn.Checked = True Then
             gentimer.Enabled = True
+
         Else
             ' Loop until the stack is empty
             While genstack.Count > 0
@@ -409,111 +467,79 @@ Public Class Form1
                 Dim neighbours = cell.removeWall(direction)
                 genstack.Push(neighbours)
             End While
+
+
         End If
     End Sub
 
 
-    Function DetermineDirectionToRemove(unvisitedNeighbors As List(Of Point), chosenNeighborIndex As Integer) As Integer
-        ' Calculate the number of unvisited neighbors
-        Dim numNeighbors As Integer = unvisitedNeighbors.Count
+    Private Sub HK(ByVal x As Integer, ByVal y As Integer)
+        ' Initialize the stack with the starting point
+        genstack.Push(New Point(x, y))
 
-        ' Define the directions (0: Up, 1: Right, 2: Down, 3: Left)
-        Dim directions() As Integer = {0, 1, 2, 3}
-
-        ' Calculate the direction based on the chosen neighbor index
-        Dim direction As Integer = (chosenNeighborIndex + 1) Mod 4 ' Adding 1 to start from 1 instead of 0
-
-        ' Return the calculated direction
-        Return directions(direction)
-
-    End Function
-    ' no issues yet
-    Function WalkRandomly(currentcell)
         Dim direction As Integer
-        While currentcell IsNot Nothing
-            Dim cell = maze(currentcell.X, currentcell.Y)
-            ' Mark the current cell as visited
-            cell.visited = True
+        Dim huntMode As Boolean = False ' Flag to indicate whether the algorithm is in hunt mode
 
-            'Get a random unvisited neighbor
-            Dim neighbourcell = cell.GetUnvisitedNeighbours(True) 'randomisation as rand is set to true
+        If animationbtn.Checked = True Then
+            gentimer.Enabled = True
+        Else
+            ' Loop until the stack is empty
+            While genstack.Count > 0
+                Dim currentCell = genstack.Peek()
+                Dim cell = maze(currentCell.X, currentCell.Y)
 
-            Dim validNeighbours = neighbourcell.Where(Function(point) point <> Point.Empty).ToList()
-            direction = neighbourcell.IndexOf(validNeighbours(random.Next(0, validNeighbours.Count())))
+                ' Mark the current cell as visited
+                cell.visited = True
 
+                ' Get the unvisited neighbors of the current cell
+                Dim unvisitedNeighbours = cell.GetUnvisitedNeighbours(False)
 
-            Dim neighbour = cell.removeWall(direction)
+                ' If all neighbors are visited, switch to hunt mode
+                If unvisitedNeighbours.All(Function(p) p.Equals(Point.Empty)) = True Then
+                    ' If in hunt mode, find an unvisited neighbor adjacent to a visited cell
+                    If huntMode Then
+                        Dim huntTarget = FindHuntTarget()
+                        If huntTarget <> Nothing Then
+                            genstack.Push(huntTarget)
+                            huntMode = False ' Exit hunt mode
+                            Continue While ' Continue DFS from the newly found cell
+                        End If
+                    End If
+                    If unvisitedNeighbours.Count = 0 Then Exit While
 
-            'Update the current cell
-            currentcell = neighbour
-
-        End While
-    End Function
-    Function HuntForUnvisitedCell(maze, random, currentcell)
-        Dim direction As Integer
-        Dim cell = maze(currentcell.X, currentcell.Y)
-        For i As Integer = 0 To maze.GetLength(0) - 1
-            For j As Integer = 0 To maze.GetLength(1) - 1
-                If Not maze(i, j).visited Then
-
-                    ' The cell is unvisited
-                    Dim unvisitedneighbour = cell.GetUnvisitedNeighbours(True) 'randomisation as rand is set to true
-                    ' Filter out the empty values from the list of neighbors
-                    Dim validNeighbours = unvisitedneighbour.Where(Function(point) point <> point.Empty).ToList()
-                    direction = unvisitedneighbour.IndexOf(validNeighbours(random.Next(0, validNeighbours.Count())))
-                    ' Remove the wall between the cell and its unvisited neighbor
-                    Dim neighbour = cell.removeWall(direction)
-
-                    ' Return the unvisited neighbor
-                    currentcell = neighbour
+                    ' If not in hunt mode, set flag to enter hunt mode
+                    huntMode = True
+                    Continue While
                 End If
-            Next
-        Next
 
-        ' No unvisited cell found
-        Return Point.Empty
-    End Function
-    Sub MarkCurrentCellAsVisited(ByRef currentCell As Point, ByRef maze As Boolean(,))
-        maze(currentCell.X, currentCell.Y) = True
+                ' If in hunt mode, continue the loop
+                If huntMode Then Continue While
+
+                Dim valNeighbours = unvisitedNeighbours.Where(Function(p) p <> Point.Empty).ToList()
+
+                ' Randomly choose a valid direction from the list of non-empty neighbors
+                Randomize()
+                direction = unvisitedNeighbours.IndexOf(valNeighbours(random.Next(0, valNeighbours.Count())))
+
+                Dim neighbours = cell.removeWall(direction)
+                genstack.Push(neighbours)
+            End While
+        End If
     End Sub
-    Function HasUnvisitedNeighbour(ByRef currentCell As Point, ByRef maze As Boolean(,), ByVal random As Random) As Boolean
-        ' Create a list to store potential neighbors
-        Dim potentialNeighbors As New List(Of Point)
 
-        ' Check top neighbour
-        If currentCell.X > 0 AndAlso Not maze(currentCell.X - 1, currentCell.Y) Then
-            potentialNeighbors.Add(New Point(currentCell.X - 1, currentCell.Y))
+    ' Helper function to find an unvisited neighbor adjacent to a visited cell
+    Private Function FindHuntTarget() As Point
+        If huntTargets.Count > 0 Then
+            ' Randomly select from the list of potential hunt targets
+            Randomize()
+            Dim index As Integer = random.Next(0, huntTargets.Count)
+            Dim target As Point = huntTargets(index)
+            huntTargets.RemoveAt(index)
+            Return target
         End If
-
-        ' Check bottom neighbour
-        If currentCell.X < maze.GetLength(0) - 1 AndAlso Not maze(currentCell.X + 1, currentCell.Y) Then
-            potentialNeighbors.Add(New Point(currentCell.X + 1, currentCell.Y))
-        End If
-
-        ' Check left neighbour  
-        If currentCell.Y > 0 AndAlso Not maze(currentCell.X, currentCell.Y - 1) Then
-            potentialNeighbors.Add(New Point(currentCell.X, currentCell.Y - 1))
-        End If
-
-        ' Check right neighbor
-        If currentCell.Y < maze.GetLength(1) - 1 AndAlso Not maze(currentCell.X, currentCell.Y + 1) Then
-            potentialNeighbors.Add(New Point(currentCell.X, currentCell.Y + 1))
-        End If
-
-        ' Shuffle the potential neighbors to introduce randomness
-        potentialNeighbors = potentialNeighbors.OrderBy(Function() random.Next()).ToList()
-
-        ' Check if there are unvisited neighbors
-        Return potentialNeighbors.Any()
+        Return Nothing
     End Function
-    Function RandomCellInMaze(ByVal x As Integer, ByVal y As Integer, ByVal random As Random)
-
-        Dim randx As Integer = random.Next(x)
-        Dim randy As Integer = random.Next(y)
-        Dim randpoint As New Point(randx, randy)
-        Return randpoint
-    End Function
-    Private Sub gentimer_tick(sender As Object, e As EventArgs)
+    Private Sub gentimer_tick(sender As Object, e As EventArgs) 'animation
         With MazeGraphics
             If genstack.Count > 0 Then
                 Dim currentCell = genstack.Peek()
@@ -576,6 +602,7 @@ Public Class Form1
             End If
         End With
     End Sub
+
     'solving
     Private Function astar()
         gweight.Clear()
@@ -620,25 +647,18 @@ Public Class Form1
                 End If
 
             Next
-            Dim current As Point = mexit
-            While current <> mentry AndAlso parent.ContainsKey(current)
-                current = parent(current)
-                If current <> mentry Then
-                    path.Enqueue(current)
-                End If
-            End While
+
 
             reconstruct(parent, False)
             If animationbtn.Checked = False Then
                 ' Marking the solution in the maze
-                For Each node In path
-                    maze(node.X, node.Y).msolv = True
-                Next
+                reconstruct(parent, True)
+
             ElseIf animationbtn.Checked = True Then
                 searchtimer.Enabled = True
             End If
         End While
-    End Function '2 error
+    End Function
     Private Sub Dijkstra()
         gweight.Clear()
         closedset.Clear()
@@ -680,20 +700,11 @@ Public Class Form1
                 End If
             Next
         End While
-        Dim current As Point = mexit
-        While current <> mentry AndAlso parent.ContainsKey(current)
-            current = parent(current)
-            If current <> mentry Then
-                path.Enqueue(current)
-            End If
-        End While
 
         reconstruct(parent, False)
         If animationbtn.Checked = False Then
             ' Marking the solution in the maze
-            For Each node In path
-                maze(node.X, node.Y).msolv = True
-            Next
+            reconstruct(parent, True)
         ElseIf animationbtn.Checked = True Then
             searchtimer.Enabled = True
         End If
@@ -704,17 +715,10 @@ Public Class Form1
     End Sub
     Public Function reconstruct(parent As Dictionary(Of Point, Point), full As Boolean)
         If full = True Then
-            Dim current As Point = mexit
-            While current <> mentry AndAlso parent.ContainsKey(current)
-                current = parent(current)
-                If current <> mentry Then
-                    path.Enqueue(current)
-                End If
-            End While
-
             For Each node In path
                 maze(node.X, node.Y).msolv = True
             Next
+            path.Clear()
         ElseIf full = False Then
             Dim current As Point = mexit
             While current <> mentry AndAlso parent.ContainsKey(current)
@@ -817,6 +821,7 @@ Public Class Form1
             MsgBox("Make sure width and height are integers greater than 3", MsgBoxStyle.OkOnly, "Invalid Input")
             Exit Sub
         End If
+        entryexit = entryexitcombo.Text
         generationAlgorithm = generationCombo.Text
         If Math.Floor(Math.Min(1222 / Int(widthTxtBox.Text), 690 / Int(heightTxtBox.Text))) < 3 Then
             MsgBox("WIDTH >407 AND/OR HEIGHT >230" & vbCrLf & "Do you wish to download maze?", MsgBoxStyle.OkCancel, "ERROR:")
@@ -844,7 +849,7 @@ Public Class Form1
         End If
         If generationAlgorithm = "Hunt And Kill" Then
 
-            'HK(random.Next(1, width), random.Next(1, height))
+            HK(random.Next(1, width), random.Next(1, height))
 
         End If
         generationtimer.Stop()
@@ -904,8 +909,9 @@ Public Class Form1
         If mazegen = True Then
             Dim openfile As New SaveFileDialog
             openfile.FileName = Nothing
-            openfile.Filter = "JPG File's |*.jpg"
+            openfile.Filter = "JPG File|*.jpg"
             openfile.ShowDialog()
+            mazeimage.Save(openfile.FileName)
         End If
     End Sub
     Private Sub mSaveBtn_click(sender As Object, e As EventArgs)
