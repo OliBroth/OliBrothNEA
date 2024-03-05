@@ -473,7 +473,6 @@ Public Class Form1
         ' No unvisited cell found
         Return Point.Empty
     End Function
-
     Sub MarkCurrentCellAsVisited(ByRef currentCell As Point, ByRef maze As Boolean(,))
         maze(currentCell.X, currentCell.Y) = True
     End Sub
@@ -507,7 +506,6 @@ Public Class Form1
         ' Check if there are unvisited neighbors
         Return potentialNeighbors.Any()
     End Function
-
     Function RandomCellInMaze(ByVal x As Integer, ByVal y As Integer, ByVal random As Random)
 
         Dim randx As Integer = random.Next(x)
