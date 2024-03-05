@@ -1,4 +1,4 @@
-'DOA 11:30 05/03/2024
+'DOA 13:15 05/03/2024
 Imports System.Threading
 Imports OB_NEA.Form1
 Imports System.Collections.Generic
@@ -171,11 +171,6 @@ Public Class Form1
         mEntryExit()
     End Sub
     Private Sub mEntryExit()
-
-
-
-
-
         'random protection will repeat if start and finish point are the same
         Do
 
@@ -185,17 +180,17 @@ Public Class Form1
             Select Case entryexit
                 Case "Random"
                     Randomize()
-                    Dim randomType As Integer = random.Next(0, 5)
+                    Dim randomType As Integer = random.Next(0, 6)
                     Select Case randomType
-                    Case 0, 1 ' Start at a random top or bottom position
-                        entryX = random.Next(1, width)
-                        entryY = If(randomType = 0, 1, height - 1)
-                        exitX = random.Next(1, width)
-                        exitY = If(randomType = 0, height - 1, 1)
-                    Case 2, 3 ' Start at a random right or left position
-                        entryX = If(randomType = 2, 1, width - 1)
-                        entryY = random.Next(1, height)
-                        exitX = If(randomType = 2, width - 1, 1)
+                        Case 0, 1 ' Start at a random top or bottom position
+                            entryX = random.Next(1, width)
+                            entryY = If(randomType = 0, 1, height - 1)
+                            exitX = random.Next(1, width)
+                            exitY = If(randomType = 0, height - 1, 1)
+                        Case 2, 3 ' Start at a random right or left position
+                            entryX = If(randomType = 2, 1, width - 1)
+                            entryY = random.Next(1, height)
+                            exitX = If(randomType = 2, width - 1, 1)
                             exitY = random.Next(1, height)
                         Case 4
                             entryX = width \ 2
@@ -204,39 +199,76 @@ Public Class Form1
 
                             Select Case randomSide
                                 Case 1 ' Top side
-                                    exitX = random.Next(width)
+                                    exitX = random.Next(1, width)
                                     exitY = 1
                                 Case 2 ' Bottom side
-                                    exitX = random.Next(width)
+                                    exitX = random.Next(1, width)
                                     exitY = height - 1
                                 Case 3 ' Left side
                                     exitX = 1
-                                    exitY = random.Next(height)
+                                    exitY = random.Next(1, height)
                                 Case 4 ' Right side
                                     exitX = width - 1
-                                    exitY = random.Next(height)
+                                    exitY = random.Next(1, height)
+                            End Select
+                        Case 5
+                            exitX = width \ 2
+                            exitY = height \ 2
+                            Dim randomSide As Integer = random.Next(1, 5) ' Randomly select top, bottom, left, or right entry
+
+                            Select Case randomSide
+                                Case 1 ' Top side
+                                    entryX = random.Next(1, width)
+                                    entryY = 1
+                                Case 2 ' Bottom side
+                                    entryX = random.Next(1, width)
+                                    entryY = height - 1
+                                Case 3 ' Left side
+                                    entryX = 1
+                                    entryY = random.Next(1, height)
+                                Case 4 ' Right side
+                                    entryX = width - 1
+                                    entryY = random.Next(1, height)
                             End Select
                     End Select
-                Case "Labyrinth"
+                Case "Labyrinth" 'start centre exit out
                     entryX = width \ 2
                     entryY = height \ 2
                     Dim randomSide As Integer = random.Next(1, 5) ' Randomly select top, bottom, left, or right exit 
 
                     Select Case randomSide
                         Case 1 ' Top side
-                            exitX = random.Next(width)
+                            exitX = random.Next(1, width)
                             exitY = 1
                         Case 2 ' Bottom side
-                            exitX = random.Next(width)
+                            exitX = random.Next(1, width)
                             exitY = height - 1
                         Case 3 ' Left side
                             exitX = 1
-                            exitY = random.Next(height)
+                            exitY = random.Next(1, height)
                         Case 4 ' Right side
                             exitX = width - 1
-                            exitY = random.Next(height)
+                            exitY = random.Next(1, height)
                     End Select
+                Case "Labyrinth 2"
+                    exitX = width \ 2
+                    exitY = height \ 2
+                    Dim randomSide As Integer = random.Next(1, 5) ' Randomly select top, bottom, left, or right entry
 
+                    Select Case randomSide
+                        Case 1 ' Top side
+                            entryX = random.Next(1, width)
+                            entryY = 1
+                        Case 2 ' Bottom side
+                            entryX = random.Next(1, width)
+                            entryY = height - 1
+                        Case 3 ' Left side
+                            entryX = 1
+                            entryY = random.Next(1, height)
+                        Case 4 ' Right side
+                            entryX = width - 1
+                            entryY = random.Next(1, height)
+                    End Select
                 Case "Top/Bottom"
                     Dim randomType As Integer = random.Next(0, 4)
                     entryX = random.Next(1, width)
@@ -311,7 +343,35 @@ Public Class Form1
     Private Sub reset()
         closedset.Clear()
         path.Clear()
+        passedPath.Clear()
 
+        ' Reset the mazeSolved property for each cell
+        For x As Integer = 0 To width - 1
+            For y As Integer = 0 To height - 1
+                maze(x, y).msolv = False
+            Next
+        Next
+        If resetType = "G" Then
+            If generationAlgorithm = "DFS " Then
+
+                DFS(random.Next(1, width), random.Next(1, height))
+
+            ElseIf generationAlgorithm = "Hunt And Kill" Then
+
+                HK(random.Next(1, width), random.Next(1, height))
+            End If
+        ElseIf resetType = "S" Then
+
+            If solvealgorithm = "Dijkstra's" Then
+                Dijkstra()
+            End If
+        ElseIf solvealgorithm = "astar" Then
+            astar()
+        End If
+        drawMaze()
+        PictureBox1.Image = mazeimage
+        PictureBox1.Update()
+        Cnclanimation.Checked = True
     End Sub
     Public Class Cell
         Public x, y As Integer
@@ -564,7 +624,7 @@ Public Class Form1
                     ' Make a new list that only contains the non empty values from neighbour
                     Dim valNeigbours As New List(Of Point)
                     For Each point In unvisitedNeighbors
-                        If point <> Point.Empty Then
+                        If point <> point.Empty Then
                             valNeigbours.Add(point)
                         End If
                     Next
