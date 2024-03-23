@@ -1,0 +1,19 @@
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\bin\Debug\net6.0-windows\OB NEA.exe
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\bin\Debug\net6.0-windows\OB NEA.deps.json
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\bin\Debug\net6.0-windows\OB NEA.runtimeconfig.json
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\bin\Debug\net6.0-windows\OB NEA.dll
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\bin\Debug\net6.0-windows\OB NEA.pdb
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB_NEA.Form1.resources
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.vbproj.GenerateResource.cache
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.AssemblyInfoInputs.cache
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.AssemblyInfo.vb
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.vbproj.CoreCompileInputs.cache
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.dll
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\refint\OB NEA.dll
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.pdb
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.genruntimeconfig.cache
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\ref\OB NEA.dll
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB NEA.sourcelink.json
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB_NEA.Form2.resources
+C:\Users\Oli\source\repos\A-Level-Computer-Science-NEA-2023-OB\OB NEA\OB NEA\obj\Debug\net6.0-windows\OB_NEA.Resources.resources
